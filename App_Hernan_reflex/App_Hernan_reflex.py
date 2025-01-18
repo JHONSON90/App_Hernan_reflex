@@ -6,7 +6,8 @@ from rxconfig import config
 
 from App_Hernan_reflex.views.login import login_default_icons
 from App_Hernan_reflex.views.signup import signup_default_icons
-
+from App_Hernan_reflex.views.user_table import main_table
+from App_Hernan_reflex.views.dash_transaccion import transacciones
 
 class State(rx.State):
     """The app state."""
@@ -47,8 +48,32 @@ def registro() -> rx.Component:
         signup_default_icons()
         )
     
+def tabla() -> rx.Component:
+    return rx.vstack(
+        rx.box(
+            main_table(),
+            width="100%",
+        ),
+        width="100%",
+        spacing="6",
+        padding_x=["1.5em", "1.5em", "3em"],
+    )
+
+def transacciones_dash() -> rx.Component:
+    return rx.vstack(
+        rx.box(
+            transacciones(),
+            width="100%",
+        ),
+        width="100%",
+        spacing="6",
+        padding_x=["1.5em", "1.5em", "3em"],
+    )
+    
 
 app = rx.App()
 app.add_page(index)
 app.add_page(inicio)
 app.add_page(registro)
+app.add_page(tabla)
+app.add_page(transacciones_dash)

@@ -6,7 +6,7 @@ def signup_default_icons() -> rx.Component:
             rx.center(
                 rx.image(
                     src="/William-Portilla.png",
-                    width="2.5em",
+                    width="4.5em",
                     height="auto",
                     border_radius="25%",
                 ),
