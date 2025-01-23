@@ -1,35 +1,25 @@
 import reflex as rx
 
-#from ..backend.backend import Customer, State
+from ..backend.backend import Cliente, ClienteState
 from ..components.form_field import form_field
 #from ..components.status_badges import status_badge
 
 
-def show_customer():
+def show_customer(user: Cliente):
     """Show a customer in a table row."""
     return rx.table.row(
-        rx.table.cell(user.name),
+        rx.table.cell(user.nombre),
         rx.table.cell(user.identificacion),
         rx.table.cell(user.email),
-        rx.table.cell(user.phone),
-        rx.table.cell(user.address),
-        #rx.table.cell(f"${user.payments:,}"),
-        #rx.table.cell(user.date),
-        # rx.table.cell(
-        #     rx.match(
-        #         user.status,
-        #         ("Delivered", status_badge("Delivered")),
-        #         ("Pending", status_badge("Pending")),
-        #         ("Cancelled", status_badge("Cancelled")),
-        #         status_badge("Pending"),
-        #     )
-        # ),
+        rx.table.cell(user.telefono),
+        rx.table.cell(user.direccion),
+        
         rx.table.cell(
             rx.hstack(
                 update_customer_dialog(user),
                 rx.icon_button(
                     rx.icon("trash-2", size=22),
-                    #on_click=lambda: State.delete_customer(user.id),
+                    on_click=lambda: ClienteState.delete_customer(user.identificacion),
                     size="2",
                     variant="solid",
                     color_scheme="red",
@@ -106,24 +96,6 @@ def add_customer_button() -> rx.Component:
                         form_field(
                             "Direccion", "Direccion del cliente", "text", "address", "home"
                         ),
-                        # Payments
-                        
-                        # Status
-                        # rx.vstack(
-                        #     rx.hstack(
-                        #         rx.icon("truck", size=16, stroke_width=1.5),
-                        #         rx.text("Status"),
-                        #         align="center",
-                        #         spacing="2",
-                        #     ),
-                        #     rx.radio(
-                        #         ["Delivered", "Pending", "Cancelled"],
-                        #         name="status",
-                        #         direction="row",
-                        #         as_child=True,
-                        #         required=True,
-                        #     ),
-                        # ),
                         direction="column",
                         spacing="3",
                     ),
@@ -146,8 +118,8 @@ def add_customer_button() -> rx.Component:
                         mt="4",
                         justify="end",
                     ),
-                    #on_submit=State.add_customer_to_db,
-                    #reset_on_submit=False,
+                    on_submit=ClienteState.add_cliente_to_db,
+                    reset_on_submit=False,
                 ),
                 width="100%",
                 direction="column",
@@ -170,7 +142,7 @@ def update_customer_dialog(user):
                 color_scheme="blue",
                 size="2",
                 variant="solid",
-                #on_click=lambda: State.get_user(user),
+                on_click=lambda: ClienteState.get_user(user),
             ),
         ),
         rx.dialog.content(
@@ -210,7 +182,7 @@ def update_customer_dialog(user):
                             "text",
                             "name",
                             "user",
-                            #user.name,
+                            user.nombre,
                         ),
                         # Identificacion
                         form_field(
@@ -219,7 +191,7 @@ def update_customer_dialog(user):
                             "number",
                             "payments",
                             "fingerprint",
-                            #user.payments.to(str),
+                            user.identificacion.to(str),
                         ),
                         
                         # Email
@@ -229,7 +201,7 @@ def update_customer_dialog(user):
                             "email",
                             "email",
                             "mail",
-                            #user.email,
+                            user.email,
                         ),
                         # Phone
                         form_field(
@@ -238,7 +210,7 @@ def update_customer_dialog(user):
                             "tel",
                             "phone",
                             "phone",
-                            #user.phone,
+                            user.telefono.to(str),
                         ),
                         # Address
                         form_field(
@@ -247,26 +219,8 @@ def update_customer_dialog(user):
                             "text",
                             "address",
                             "home",
-                            #user.address,
+                            user.direccion,
                         ),
-                        
-                        # Status
-                        # rx.vstack(
-                        #     rx.hstack(
-                        #         rx.icon("truck", size=16, stroke_width=1.5),
-                        #         rx.text("Status"),
-                        #         align="center",
-                        #         spacing="2",
-                        #     ),
-                        #     rx.radio(
-                        #         ["Delivered", "Pending", "Cancelled"],
-                        #         default_value=user.status,
-                        #         name="status",
-                        #         direction="row",
-                        #         as_child=True,
-                        #         required=True,
-                        #     ),
-                        # ),
                         direction="column",
                         spacing="3",
                     ),
@@ -289,8 +243,8 @@ def update_customer_dialog(user):
                         mt="4",
                         justify="end",
                     ),
-                    #on_submit=State.update_customer_to_db,
-                    #reset_on_submit=False,
+                    on_submit=ClienteState.update_customer_to_db,
+                    reset_on_submit=False,
                 ),
                 width="100%",
                 direction="column",
@@ -321,27 +275,27 @@ def main_table():
             add_customer_button(),
             rx.spacer(),
             rx.cond(
-                #State.sort_reverse,
+                ClienteState.sort_reverse,
                 rx.icon(
                     "arrow-down-z-a",
                     size=28,
                     stroke_width=1.5,
                     cursor="pointer",
-                    #on_click=State.toggle_sort,
+                    on_click=ClienteState.toggle_sort,
                 ),
                 rx.icon(
                     "arrow-down-a-z",
                     size=28,
                     stroke_width=1.5,
                     cursor="pointer",
-                    #on_click=State.toggle_sort,
+                    on_click=ClienteState.toggle_sort,
                 ),
             ),
             rx.select(
                 ["name", "identificacion", "email", "phone", "address"], #"date", "status"
                 placeholder="Sort By: Name",
                 size="3",
-                #on_change=lambda sort_value: State.sort_values(sort_value),
+                on_change=lambda sort_value: ClienteState.sort_values(sort_value),
             ),
             rx.input(
                 rx.input.slot(rx.icon("search")),
@@ -350,7 +304,7 @@ def main_table():
                 max_width="225px",
                 width="100%",
                 variant="surface",
-                #on_change=lambda value: State.filter_values(value),
+                on_change=lambda value: ClienteState.filter_values(value),
             ),
             justify="end",
             align="center",
@@ -367,16 +321,13 @@ def main_table():
                     _header_cell("Email", "mail"),
                     _header_cell("Telefono", "phone"),
                     _header_cell("Direccion", "home"),
-                    #_header_cell("Pagos", "dollar-sign"),
-                    #_header_cell("Date", "calendar"),
-                    #_header_cell("Status", "truck"),
                     _header_cell("Actions", "cog"),
                 ),
             ),
-            # rx.table.body(rx.foreach(State.users, show_customer)),
-            # variant="surface",
-            # size="3",
-            # width="100%",
-            #on_mount=State.load_entries,
+            rx.table.body(rx.foreach(ClienteState.users, show_customer)),
+            variant="surface",
+            size="3",
+            width="100%",
+            on_mount=ClienteState.load_clientes,
         ),
     )

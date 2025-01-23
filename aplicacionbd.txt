@@ -1,0 +1,195 @@
+Te mostraré un ejemplo paso a paso usando Reflex:
+
+1. Primero, definimos el modelo de Cliente
+
+python
+import reflex as rx
+from sqlmodel import select, or_
+
+class Cliente(rx.Model, table=True):
+    """Modelo de cliente."""
+    name: str
+    address: str
+    phone: str
+1
+
+2. Creamos el Estado para manejar los clientes
+
+python
+class ClienteState(rx.State):
+    clientes: list[Cliente] = []
+    
+    # Variables para el formulario
+    name: str = ""
+    address: str = ""
+    phone: str = ""
+    
+    # Variable para edición
+    cliente_id: int = 0
+    
+    @rx.event
+    def load_clientes(self):
+        """Cargar todos los clientes."""
+        with rx.session() as session:
+            self.clientes = session.exec(select(Cliente)).all()
+    
+    @rx.event
+    def add_cliente(self):
+        """Agregar nuevo cliente."""
+        with rx.session() as session:
+            cliente = Cliente(
+                name=self.name,
+                address=self.address,
+                phone=self.phone
+            )
+            session.add(cliente)
+            session.commit()
+            # Limpiar formulario
+            self.name = ""
+            self.address = ""
+            self.phone = ""
+            # Recargar lista
+            self.load_clientes()
+            
+    @rx.event
+    def delete_cliente(self, cliente_id: int):
+        """Eliminar cliente."""
+        with rx.session() as session:
+            cliente = session.get(Cliente, cliente_id)
+            if cliente:
+                session.delete(cliente)
+                session.commit()
+                self.load_clientes()
+                
+    @rx.event
+    def edit_cliente(self, cliente_id: int):
+        """Cargar cliente para editar."""
+        with rx.session() as session:
+            cliente = session.get(Cliente, cliente_id)
+            if cliente:
+                self.cliente_id = cliente_id
+                self.name = cliente.name
+                self.address = cliente.address 
+                self.phone = cliente.phone
+3. Creamos el formulario y la tabla
+
+python
+def index():
+    return rx.vstack(
+        # Formulario
+        rx.form(
+            rx.vstack(
+                rx.input(
+                    placeholder="Nombre",
+                    value=ClienteState.name,
+                    on_change=ClienteState.set_name,
+                ),
+                rx.input(
+                    placeholder="Dirección",
+                    value=ClienteState.address,
+                    on_change=ClienteState.set_address,
+                ),
+                rx.input(
+                    placeholder="Teléfono",
+                    value=ClienteState.phone,
+                    on_change=ClienteState.set_phone,
+                ),
+                rx.button("Guardar", type_="submit"),
+            ),
+            on_submit=ClienteState.add_cliente,
+        ),
+        
+        # Tabla
+        rx.table.root(
+            rx.table.header(
+                rx.table.row(
+                    rx.table.column_header_cell("Nombre"),
+                    rx.table.column_header_cell("Dirección"),
+                    rx.table.column_header_cell("Teléfono"),
+                    rx.table.column_header_cell("Acciones"),
+                ),
+            ),
+            rx.table.body(
+                rx.foreach(
+                    ClienteState.clientes,
+                    lambda cliente: rx.table.row(
+                        rx.table.cell(cliente.name),
+                        rx.table.cell(cliente.address),
+                        rx.table.cell(cliente.phone),
+                        rx.table.cell(
+                            rx.hstack(
+                                rx.button(
+                                    "Editar",
+                                    on_click=lambda: ClienteState.edit_cliente(cliente.id),
+                                ),
+                                rx.button(
+                                    "Eliminar",
+                                    on_click=lambda: ClienteState.delete_cliente(cliente.id),
+                                ),
+                            )
+                        ),
+                    ),
+                )
+            ),
+            on_mount=ClienteState.load_clientes,
+        ),
+    )
+4. Configuración final de la app
+
+python
+app = rx.App()
+app.add_page(index)
+2
+
+Explicación del funcionamiento:
+
+El modelo Cliente define la estructura de la tabla en la base de datos. 1
+
+ClienteState maneja toda la lógica:
+
+Carga los clientes existentes
+Agrega nuevos clientes
+Elimina clientes
+Prepara clientes para edición
+La interfaz de usuario contiene:
+
+Un formulario para ingresar/editar datos
+Una tabla que muestra todos los clientes
+Botones de acción para cada cliente
+Cuando la página se carga, se ejecuta load_clientes para mostrar los datos existentes
+
+Para usar este código necesitas:
+
+Tener Reflex instalado
+Configurar la conexión a tu base de datos en la configuración de Reflex
+Ejecutar las migraciones de la base de datos para crear la tabla
+Los eventos del estado (@rx.event) se ejecutan en el backend, mientras que la interfaz se actualiza automáticamente cuando cambia el estado.
+
+
+Primero, inicializa la base de datos con:
+bash
+reflex db init
+1
+
+Luego, crea las migraciones:
+bash
+reflex db makemigrations --message 'initial migration'
+Finalmente, aplica las migraciones:
+bash
+reflex db migrate
+También asegúrate que tu modelo Cliente esté correctamente definido. Aquí hay un ejemplo de cómo debería verse:
+
+python
+class Cliente(rx.Model, table=True):
+    """The cliente model."""
+    nombre: str
+    identificacion: int
+    email: str
+    telefono: int  
+    direccion: str
+Si sigues teniendo problemas después de ejecutar estos comandos, verifica:
+
+Que el archivo rxconfig.py tenga la configuración correcta de la base de datos
+Que la base de datos SQLite se haya creado correctamente en tu directorio
+Que las migraciones se hayan generado en el directorio alembic/versions
+
