@@ -1,26 +1,27 @@
 import reflex as rx
 
-#from ..backend.backend import Customer, State
+from sqlmodel import select
+from ..backend.transacciones import Transaccion, TransaccionState
 from ..components.form_field import form_field
 #from ..components.status_badges import status_badge
+#from ..backend.backend import Cliente
 
 
-def show_customer():
-    """Show a customer in a table row."""
+def show_customer(user:Transaccion):
     return rx.table.row(
-        rx.table.cell(user.identificacion),
-        rx.table.cell(user.name),
-        rx.table.cell(user.tipo),
+        rx.table.cell(user.cliente_identificacion),
+        #rx.table.cell(rx.computed_fn(TransaccionState.get_customer_name)(user.cliente_identificacion)),
+        rx.table.cell(user.tipo_transaccion),
         rx.table.cell(user.usuario_final),
-        rx.table.cell(f"${user.payments_total:,}"),
-        rx.table.cell(f"${user.payments_cobro:,}"),
+        rx.table.cell(f"${user.total_recibido:,}"),
+        rx.table.cell(f"${user.valor_transaccion:,}"),
         
         rx.table.cell(
             rx.hstack(
                 update_customer_dialog(user),
                 rx.icon_button(
                     rx.icon("trash-2", size=22),
-                    #on_click=lambda: State.delete_customer(user.id),
+                    on_click=lambda: TransaccionState.delete_transaccion(user.id),
                     size="2",
                     variant="solid",
                     color_scheme="red",
@@ -80,13 +81,13 @@ def add_transaccion_button() -> rx.Component:
                             "fingerprint",
                         ),
                         # Name
-                        form_field(
-                            "Nombres y Apellidos",
-                            "Nombres del cliente",
-                            "text",
-                            "name",
-                            "user",
-                        ),
+                        # form_field(
+                        #     "Nombres y Apellidos",
+                        #     "Nombres del cliente",
+                        #     "text",
+                        #     "name",
+                        #     "user",
+                        # ),
                         
                         # Email
                         form_field(
@@ -120,20 +121,20 @@ def add_transaccion_button() -> rx.Component:
                                 variant="soft",
                                 color_scheme="gray",
                             ),
-                        ),
-                        rx.form.submit(
-                            rx.dialog.close(
-                                rx.button("Guardar"),
+                        rx.dialog.close(
+                            rx.button(
+                                "Guardar",
+                                type="submit",
                             ),
-                            as_child=True,
+                        )
                         ),
                         padding_top="2em",
                         spacing="3",
                         mt="4",
                         justify="end",
                     ),
-                    #on_submit=State.add_customer_to_db,
-                    #reset_on_submit=False,
+                    on_submit=TransaccionState.add_transaccion,
+                    reset_on_submit=False,
                 ),
                 width="100%",
                 direction="column",
@@ -146,7 +147,6 @@ def add_transaccion_button() -> rx.Component:
         ),
     )
 
-
 def update_customer_dialog(user):
     return rx.dialog.root(
         rx.dialog.trigger(
@@ -156,7 +156,7 @@ def update_customer_dialog(user):
                 color_scheme="blue",
                 size="2",
                 variant="solid",
-                #on_click=lambda: State.get_user(user),
+                on_click=lambda: TransaccionState.get_transa_unit(user),
             ),
         ),
         rx.dialog.content(
@@ -196,22 +196,27 @@ def update_customer_dialog(user):
                             "number",
                             "identificacion",
                             "fingerprint",
+                            user.cliente_identificacion,
                         ),
                         # Name
-                        form_field(
-                            "Nombres y Apellidos",
-                            "Nombres del cliente",
-                            "text",
-                            "name",
-                            "user",
-                        ),
+                        # form_field(
+                        #     "Nombres y Apellidos",
+                        #     "Nombres del cliente",
+                        #     "text",
+                        #     "name",
+                        #     "user",
+                        #     rx.computed_fn(TransaccionState.get_customer_name)(user.cliente_identificacion),
+                        # ),
+                        
                         
                         # Email
                         form_field(
-                            "Tipo", "Tipo de transacción", "text", "tipo", "credit-card"
+                            "Tipo", "Tipo de transacción", "text", "tipo", "credit-card",
+                            user.tipo_transaccion
                         ),
                         # Phone
-                        form_field("Usuario Final", "A quien le consignas?", "text", "usuario_final", "user-round-check"),
+                        form_field("Usuario Final", "A quien le consignas?", "text", "usuario_final", "user-round-check",
+                                   user.usuario_final),
                         # Pago total
                         form_field(
                             "Total Recibido ($)",
@@ -219,14 +224,16 @@ def update_customer_dialog(user):
                             "number",
                             "payments",
                             "dollar-sign",
+                            user.total_recibido
                         ),
                         # cunto cobro
                         form_field(
                             "Pago Recibido ($)",
-                            "TCuanto cobras al cliente",
+                            "Cuanto cobras al cliente",
                             "number",
                             "payments",
                             "dollar-sign",
+                            user.valor_transaccion
                         ),
                         direction="column",
                         spacing="3",
@@ -239,19 +246,19 @@ def update_customer_dialog(user):
                                 color_scheme="gray",
                             ),
                         ),
-                        rx.form.submit(
-                            rx.dialog.close(
-                                rx.button("Cambiar Transacción"),
+                        
+                        rx.button(
+                            "Cambiar Transacción",
+                            type="submit",
                             ),
-                            as_child=True,
-                        ),
+                            
                         padding_top="2em",
                         spacing="3",
                         mt="4",
                         justify="end",
                     ),
-                    #on_submit=State.update_customer_to_db,
-                    #reset_on_submit=False,
+                    on_submit=TransaccionState.update_transaccion,
+                    reset_on_submit=False,
                 ),
                 width="100%",
                 direction="column",
@@ -276,33 +283,33 @@ def _header_cell(text: str, icon: str):
     )
 
 
-def transacciones():
+def transacciones_page():
     return rx.fragment(
         rx.flex(
             add_transaccion_button(),
             rx.spacer(),
             rx.cond(
-                #State.sort_reverse,
+                TransaccionState.sort_reverse,
                 rx.icon(
                     "arrow-down-z-a",
                     size=28,
                     stroke_width=1.5,
                     cursor="pointer",
-                    #on_click=State.toggle_sort,
+                    on_click=TransaccionState.toggle_sort,
                 ),
                 rx.icon(
                     "arrow-down-a-z",
                     size=28,
                     stroke_width=1.5,
                     cursor="pointer",
-                    #on_click=State.toggle_sort,
+                    on_click=TransaccionState.toggle_sort,
                 ),
             ),
             rx.select(
-                ["identificacion", "name",  "tipo", "usuario_final", "payments_total", "payments_cobro"], #"date", "status"
+                ["cliente_identificacion",  "tipo_transaccion", "usuario_final", "total_recibido", "valor_transaccion"], #"date", "status"
                 placeholder="Sort By: Name",
                 size="3",
-                #on_change=lambda sort_value: State.sort_values(sort_value),
+                on_change=lambda sort_value: TransaccionState.sort_values(sort_value),
             ),
             rx.input(
                 rx.input.slot(rx.icon("search")),
@@ -311,7 +318,7 @@ def transacciones():
                 max_width="225px",
                 width="100%",
                 variant="surface",
-                #on_change=lambda value: State.filter_values(value),
+                on_change=lambda value: TransaccionState.filter_values(value),
             ),
             justify="end",
             align="center",
@@ -324,7 +331,7 @@ def transacciones():
             rx.table.header(
                 rx.table.row(
                     _header_cell("Identificacion", "fingerprint"),
-                    _header_cell("Nombre", "user"),
+                    #_header_cell("Nombre", "user"),
                     _header_cell("Tipo", "credit-card"),
                     _header_cell("Usuario Final", "user-round-check"),
                     _header_cell("Pago Total", "dollar-sign"),
@@ -335,10 +342,10 @@ def transacciones():
                     _header_cell("Actions", "cog"),
                 ),
             ),
-            # rx.table.body(rx.foreach(State.users, show_customer)),
-            # variant="surface",
-            # size="3",
-            # width="100%",
-            #on_mount=State.load_entries,
+            rx.table.body(rx.foreach(TransaccionState.transacciones, show_customer)),
+            variant="surface",
+            size="3",
+            width="100%",
+            on_mount=TransaccionState.on_load_transacciones,
         ),
     )

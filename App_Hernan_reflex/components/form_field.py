@@ -9,6 +9,8 @@ def form_field(
     icon: str,
     default_value: str = "",
 ) -> rx.Component:
+    #convertir el valor del campo a un string
+    default_value = str(default_value)
     return rx.form.field(
         rx.flex(
             rx.hstack(

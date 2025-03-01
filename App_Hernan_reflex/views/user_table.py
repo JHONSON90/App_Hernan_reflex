@@ -68,14 +68,14 @@ def add_customer_button() -> rx.Component:
                 width="100%",
             ),
             rx.flex(
-                rx.form.root(
+                rx.form(
                     rx.flex(
                         # Name
                         form_field(
                             "Nombres y Apellidos",
                             "Nombres del cliente",
                             "text",
-                            "name",
+                            "nombre",  # Cambiado de "name" a "nombre"
                             "user",
                         ),
                         #identificacion
@@ -88,13 +88,27 @@ def add_customer_button() -> rx.Component:
                         ),
                         # Email
                         form_field(
-                            "Email", "user@reflex.dev", "email", "email", "mail"
+                            "Email", 
+                            "user@reflex.dev", 
+                            "email", 
+                            "email", 
+                            "mail"
                         ),
                         # Phone
-                        form_field("Telefono", "Telefono del cliente", "tel", "phone", "phone"),
+                        form_field(
+                            "Telefono", 
+                            "Telefono del cliente", 
+                            "tel", 
+                            "telefono",  # Cambiado de "phone" a "telefono"
+                            "phone"
+                        ),
                         # Address
                         form_field(
-                            "Direccion", "Direccion del cliente", "text", "address", "home"
+                            "Direccion", 
+                            "Direccion del cliente", 
+                            "text", 
+                            "direccion",  # Cambiado de "address" a "direccion"
+                            "home"
                         ),
                         direction="column",
                         spacing="3",
@@ -107,19 +121,20 @@ def add_customer_button() -> rx.Component:
                                 color_scheme="gray",
                             ),
                         ),
-                        rx.form.submit(
-                            rx.dialog.close(
-                                rx.button("Guardar"),
+                        #rx.dialog.close(
+                            rx.button(
+                            "Guardar",
+                            type="submit"
                             ),
-                            as_child=True,
-                        ),
+                        #),
+                        
                         padding_top="2em",
                         spacing="3",
                         mt="4",
                         justify="end",
                     ),
                     on_submit=ClienteState.add_cliente_to_db,
-                    reset_on_submit=False,
+                    reset_on_submit=True,
                 ),
                 width="100%",
                 direction="column",
@@ -138,7 +153,7 @@ def update_customer_dialog(user):
         rx.dialog.trigger(
             rx.button(
                 rx.icon("square-pen", size=22),
-                rx.text("Edit", size="3"),
+                rx.text("Editar", size="3"),
                 color_scheme="blue",
                 size="2",
                 variant="solid",
@@ -173,7 +188,7 @@ def update_customer_dialog(user):
                 width="100%",
             ),
             rx.flex(
-                rx.form.root(
+                rx.form(
                     rx.flex(
                         # Name
                         form_field(
@@ -232,30 +247,34 @@ def update_customer_dialog(user):
                                 color_scheme="gray",
                             ),
                         ),
-                        rx.form.submit(
-                            rx.dialog.close(
-                                rx.button("Actualizar Cliente"),
+                        #rx.dialog.close(
+                            rx.button(
+                            "Actualizar Cliente",
+                            type="submit"
                             ),
-                            as_child=True,
-                        ),
+                        #),
+                        
+                            #as_child=True,
                         padding_top="2em",
                         spacing="3",
                         mt="4",
                         justify="end",
+                        ),
+                        on_submit=ClienteState.update_customer_to_db,
+                        reset_on_submit=True,
                     ),
-                    on_submit=ClienteState.update_customer_to_db,
-                    reset_on_submit=False,
-                ),
                 width="100%",
                 direction="column",
                 spacing="4",
-            ),
+                ),
             max_width="450px",
             padding="1.5em",
             border=f"2px solid {rx.color('accent', 7)}",
             border_radius="25px",
+            ),
+            
         ),
-    )
+
 
 
 def _header_cell(text: str, icon: str):
