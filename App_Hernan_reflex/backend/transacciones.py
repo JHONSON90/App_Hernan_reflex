@@ -1,12 +1,14 @@
 import reflex as rx
+
+from datetime import datetime
 import asyncio
 
 from sqlmodel import String, asc, cast, desc, func, or_,select, SQLModel, Field
 
-from .backend import Cliente
+#from .backend import Cliente
 
 class Transaccion(rx.Model, table=True):
-    id_transaccion: int = Field(primary_key=True)
+    id_transaccion: int = Field(default=None, primary_key=True)
     fecha: str
     cliente_identificacion: int
     tipo_transaccion: str
@@ -28,6 +30,8 @@ class TransaccionState(rx.State):
     @rx.event
     async def on_load_transacciones(self) -> list[Transaccion]:
         with rx.session() as session:
+            all_transacciones = session.exec(select(Transaccion)).all()
+            print("Transacciones cargadas", len(all_transacciones))
             self.transacciones = session.exec(select(Transaccion)).all()
             query = select(Transaccion)
             if self.search_value:
@@ -69,34 +73,62 @@ class TransaccionState(rx.State):
         self.search_value = search_value
         self.load_transacciones()
         
+    # @rx.event
+    # def get_transa_unit(self, transaccion: Transaccion):
+    #     self.current_transaccion = transaccion
+    
     @rx.event
     def get_transa_unit(self, transaccion: Transaccion):
-        self.current_transaccion = transaccion
+        with rx.session() as session:
+            # Obtener la transacción desde la base de datos usando el ID
+            db_transaccion = session.exec(
+                select(Transaccion).where(Transaccion.id_transaccion == transaccion.id_transaccion)
+            ).first()
+            if db_transaccion:
+                self.current_transaccion = db_transaccion
+            else:
+                rx.toast.error("No se encontró la transacción", position="bottom-right", duration=3000)
+            
+    # @rx.event
+    # def get_transaccion(self, id_transaccion: int):
+    #     with rx.session() as session:
+    #         self.current_transaccion
     
     @rx.event
     def get_transaccion(self, id_transaccion: int):
         with rx.session() as session:
-            self.current_transaccion
+            transaccion = session.exec(select(Transaccion).where(Transaccion.id_transaccion == id_transaccion)).first()
+            if transaccion:
+                self.current_transaccion = transaccion
             
     @rx.event
     async def add_transaccion(self, form_data: dict):
+        print("Intentando guardar transaccion:", form_data)
         try:
+            print("Transaccion recibida", form_data)
+            form_data["fecha"] = datetime.now().strftime("%d-%m-%Y")
             #cambiar los tipos de datos que se reciben a int o float
             form_data["cliente_identificacion"] = int(form_data["cliente_identificacion"])
             form_data["total_recibido"] = int(form_data["total_recibido"])
             form_data["valor_transaccion"] = int(form_data["valor_transaccion"])
+            print("Transaccion recibida")
             with rx.session() as session:
                 nueva_transaccion = Transaccion(**form_data)
+                print("Transaccion recibida", nueva_transaccion)
                 session.add(nueva_transaccion)
                 session.commit()
                 session.refresh(nueva_transaccion)
-                self.current_transaccion = nueva_transaccion
+                
+                self.transacciones.append(nueva_transaccion)
+                #self.current_transaccion = nueva_transaccion
+                print("Transaccion agregada")
                 
                 await self.load_transacciones()
                 
                 return rx.toast.success("Transaccion agregada exitosamente", position="bottom-right", duration=5000)
             
         except Exception as e:
+            print("el error es:",e)
             return rx.toast.error("Error al agregar transaccion", position="bottom-right", duration=5000)
         
     @rx.event
@@ -106,6 +138,7 @@ class TransaccionState(rx.State):
                 transaccion = session.exec(select(Transaccion).where(Transaccion.id_transaccion == self.current_transaccion.id_transaccion)).first()
                 if transaccion:
                     form_data.pop("id_transaccion", None)
+                    form_data["fecha"]= datetime.now().strftime("%d-%m-%Y")
                     for key, value in form_data.items():
                         setattr(transaccion, key, value)
                     session.add(transaccion)
@@ -133,15 +166,9 @@ class TransaccionState(rx.State):
                     session.delete(transaccion)
                     session.commit()
                     
-                    self.transacciones = [transaccion for transaccion in self.transacciones != id_transaccion]
+                    self.transacciones = [t for t in self.transacciones if t.id_transaccion != id_transaccion]
                     await self.load_transacciones()
-                return rx.toast.success(f"La transaccion {id_transaccion} fue eliminada", position="bottom-right", duration=3000)
-            return rx.toast.error("No se encontró la transaccion", position="bottom-right", duration=3000)
+                    return rx.toast.success(f"La transaccion {id_transaccion} fue eliminada", position="bottom-right", duration=3000)
+            #return rx.toast.error("No se encontró la transaccion", position="bottom-right", duration=3000)
         except Exception as e:
             return rx.toast.error("Error al eliminar transaccion", position="bottom-right", duration=3000)
-        
-    # @rx.event
-    # def get_customer_name(self, identificacion: int) -> str:
-    #     with rx.session() as session:
-    #         cliente = session.exec(select(Cliente).where(Cliente.identificacion == identificacion)).first()
-    #         return cliente.nombre if cliente else "Usuario No Encontrado"    

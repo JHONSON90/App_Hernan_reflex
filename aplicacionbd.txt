@@ -259,3 +259,211 @@ Dependencias faltantes: En sistemas Linux, la falta de dependencias como curl pu
 6
 
 Si ninguna de estas soluciones funciona, considera compartir los registros completos de depuración para obtener ayuda más específica.
+
+
+
+Aquí te muestro un ejemplo de un formulario con dos botones en Reflex:
+
+python
+class State(rx.State):
+    def handle_submit(self, form_data: dict):
+        # Manejar los datos del formulario aquí
+        pass
+
+def index():
+    return rx.form(
+        rx.vstack(
+            rx.input(
+                placeholder="Usuario",
+                name="username",
+                required=True,
+            ),
+            rx.input(
+                placeholder="correo@ejemplo.com",
+                name="email",
+            ),
+            rx.flex(
+                rx.button(
+                    "Cancelar",
+                    variant="soft",
+                    color_scheme="gray",
+                ),
+                rx.button("Enviar", type="submit"),
+                spacing="3",
+                justify="end",
+            ),
+        ),
+        on_submit=State.handle_submit,
+        reset_on_submit=True,
+    )
+1
+
+Este ejemplo incluye:
+
+Un formulario con dos campos de entrada (usuario y correo electrónico) 1
+
+Dos botones:
+
+Un botón de "Cancelar" con estilo suave en gris 1
+Un botón de "Enviar" configurado como botón de envío del formulario 1
+Los botones están contenidos en un componente flex que los alinea al final del formulario 1
+
+El formulario tiene:
+
+Un manejador de eventos on_submit que procesa los datos cuando se envía 1
+La opción reset_on_submit=True que limpia el formulario después del envío 1
+Los componentes están organizados verticalmente usando rx.vstack para una mejor presentación 1.
+
+El formulario manejará automáticamente la recopilación de datos de los campos de entrada cuando se haga clic en el botón de envío 
+
+import reflex as rx
+
+class State(rx.State):
+    def handle_submit(self, form_data: dict):
+        """Manejar el envío del formulario."""
+        pass
+
+def index():
+    return rx.form.root(
+        rx.flex(
+            rx.form.field(
+                rx.flex(
+                    rx.form.label("Usuario"),
+                    rx.form.control(
+                        rx.input(
+                            placeholder="Nombre de Usuario",
+                            name="username"
+                        ),
+                        as_child=True,
+                    ),
+                    direction="column",
+                    spacing="2",
+                    align="stretch",
+                ),
+                name="username",
+            ),
+            rx.form.field(
+                rx.flex(
+                    rx.form.label("Email"),
+                    rx.form.control(
+                        rx.input(
+                            placeholder="correo@ejemplo.com",
+                            name="email"
+                        ),
+                        as_child=True,
+                    ),
+                    direction="column",
+                    spacing="2",
+                    align="stretch",
+                ),
+                name="email",
+            ),
+            rx.flex(
+                rx.button(
+                    "Cancelar",
+                    variant="soft",
+                    color_scheme="gray",
+                ),
+                rx.form.submit(
+                    rx.button("Enviar"),
+                    as_child=True,
+                ),
+                spacing="3",
+                justify="end",
+            ),
+            direction="column",
+            spacing="4",
+        ),
+        on_submit=State.handle_submit,
+        reset_on_submit=True,
+    )
+Algunas notas importantes sobre este ejemplo:
+
+El form.root es un componente de nivel bajo que ofrece más control sobre la estructura del formulario 1
+
+Los campos de entrada están envueltos en componentes form.field que incluyen:
+
+form.label para las etiquetas
+form.control para los controles de entrada 1
+Es necesario establecer as_child=True cuando se utilizan otros componentes para construir un componente de formulario 1
+
+El botón de envío está envuelto en form.submit con as_child=True para usar un botón personalizado 1
+
+Los componentes flex se utilizan para organizar la estructura y el espaciado del formulario 1
+
+El formulario incluye:
+
+Un manejador on_submit para procesar los datos
+reset_on_submit=True para limpiar el formulario después del envío 1
+Este enfoque proporciona más control sobre la estructura y el comportamiento del formulario, aunque requiere más código que la versión simple con rx.form 
+
+
+Basado en tu código, hay varios problemas que pueden estar causando que las transacciones no se guarden o muestren:
+
+En el formulario de agregar transacción, los nombres de los campos no coinciden con el modelo:
+python
+form_field(
+    "Total Recibido ($)",
+    "Total Transacción", 
+    "number",
+    "payments", # Debería ser "total_recibido"
+    "dollar-sign",
+),
+form_field(
+    "Pago Recibido ($)",
+    "TCuanto cobras al cliente",
+    "number", 
+    "payments", # Debería ser "valor_transaccion"
+    "dollar-sign",
+),
+Los nombres de los campos en el formulario deben coincidir exactamente con los nombres del modelo Transaccion. 1
+
+En el método delete_transaccion hay un error en la lógica de filtrado:
+python
+# Esto es incorrecto:
+self.transacciones = [transaccion for transaccion in self.transacciones != id_transaccion]
+
+# Debería ser:
+self.transacciones = [t for t in self.transacciones if t.id_transaccion != id_transaccion]
+El campo fecha no se está enviando en el formulario, pero es requerido según tu modelo.
+
+Para verificar que los datos se están guardando correctamente, puedes agregar logs:
+
+python
+@rx.event
+async def add_transaccion(self, form_data: dict):
+    try:
+        print("Form data received:", form_data) # Agregar log
+        form_data["cliente_identificacion"] = int(form_data["cliente_identificacion"])
+        form_data["total_recibido"] = int(form_data["total_recibido"])
+        form_data["valor_transaccion"] = int(form_data["valor_transaccion"])
+        
+        with rx.session() as session:
+            nueva_transaccion = Transaccion(**form_data)
+            print("Nueva transaccion:", nueva_transaccion) # Agregar log
+            session.add(nueva_transaccion)
+            session.commit()
+Para asegurar que los datos se están cargando, modifica el on_load_transacciones:
+python
+@rx.event
+async def on_load_transacciones(self) -> list[Transaccion]:
+    with rx.session() as session:
+        # Primero carga todas las transacciones
+        all_transactions = session.exec(select(Transaccion)).all()
+        print("Total transactions loaded:", len(all_transactions)) # Agregar log
+Asegúrate de que el estado se está actualizando correctamente después de agregar una transacción:
+python
+@rx.event
+async def add_transaccion(self, form_data: dict):
+    try:
+        # ... código existente ...
+        with rx.session() as session:
+            nueva_transaccion = Transaccion(**form_data)
+            session.add(nueva_transaccion)
+            session.commit()
+            session.refresh(nueva_transaccion)
+            
+            # Actualizar el estado inmediatamente
+            self.transacciones.append(nueva_transaccion)
+            return rx.toast.success("Transaccion agregada exitosamente")
+Estos cambios deberían ayudar a identificar dónde está el problema y corregir la funcionalidad de guardar y mostrar las transacciones. 1 3

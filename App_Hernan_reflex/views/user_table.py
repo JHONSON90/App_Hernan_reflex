@@ -16,7 +16,7 @@ def show_customer(user: Cliente):
         
         rx.table.cell(
             rx.hstack(
-                update_customer_dialog(user),
+                #update_customer_dialog(user),
                 rx.icon_button(
                     rx.icon("trash-2", size=22),
                     on_click=lambda: ClienteState.delete_customer(user.identificacion),
@@ -26,7 +26,7 @@ def show_customer(user: Cliente):
                 ),
             )
         ),
-        style={"_hover": {"bg": rx.color("gray", 3)}},
+        style={"_hover": {"background": rx.color("gray", 3)}},
         align="center",
     )
 
@@ -148,132 +148,132 @@ def add_customer_button() -> rx.Component:
     )
 
 
-def update_customer_dialog(user):
-    return rx.dialog.root(
-        rx.dialog.trigger(
-            rx.button(
-                rx.icon("square-pen", size=22),
-                rx.text("Editar", size="3"),
-                color_scheme="blue",
-                size="2",
-                variant="solid",
-                on_click=lambda: ClienteState.get_user(user),
-            ),
-        ),
-        rx.dialog.content(
-            rx.hstack(
-                rx.badge(
-                    rx.icon(tag="square-pen", size=34),
-                    color_scheme="grass",
-                    radius="full",
-                    padding="0.65rem",
-                ),
-                rx.vstack(
-                    rx.dialog.title(
-                        "Editar Cliente",
-                        weight="bold",
-                        margin="0",
-                    ),
-                    rx.dialog.description(
-                        "Editar la informacion del cliente",
-                    ),
-                    spacing="1",
-                    height="100%",
-                    align_items="start",
-                ),
-                height="100%",
-                spacing="4",
-                margin_bottom="1.5em",
-                align_items="center",
-                width="100%",
-            ),
-            rx.flex(
-                rx.form(
-                    rx.flex(
-                        # Name
-                        form_field(
-                            "Nombre",
-                            "Nombre del cliente",
-                            "text",
-                            "name",
-                            "user",
-                            user.nombre,
-                        ),
-                        # Identificacion
-                        form_field(
-                            "Identificacion",
-                            "Identificacion",
-                            "number",
-                            "payments",
-                            "fingerprint",
-                            user.identificacion.to(str),
-                        ),
+# def update_customer_dialog(user):
+#     return rx.dialog.root(
+#         rx.dialog.trigger(
+#             rx.button(
+#                 rx.icon("square-pen", size=22),
+#                 rx.text("Editar", size="3"),
+#                 color_scheme="blue",
+#                 size="2",
+#                 variant="solid",
+#                 on_click=lambda: ClienteState.get_user(user),
+#             ),
+#         ),
+#         rx.dialog.content(
+#             rx.hstack(
+#                 rx.badge(
+#                     rx.icon(tag="square-pen", size=34),
+#                     color_scheme="grass",
+#                     radius="full",
+#                     padding="0.65rem",
+#                 ),
+#                 rx.vstack(
+#                     rx.dialog.title(
+#                         "Editar Cliente",
+#                         weight="bold",
+#                         margin="0",
+#                     ),
+#                     rx.dialog.description(
+#                         "Editar la informacion del cliente",
+#                     ),
+#                     spacing="1",
+#                     height="100%",
+#                     align_items="start",
+#                 ),
+#                 height="100%",
+#                 spacing="4",
+#                 margin_bottom="1.5em",
+#                 align_items="center",
+#                 width="100%",
+#             ),
+#             rx.flex(
+#                 rx.form(
+#                     rx.flex(
+#                         # Name
+#                         form_field(
+#                             "Nombre",
+#                             "Nombre del cliente",
+#                             "text",
+#                             "nombre",
+#                             "user",
+#                             user.nombre,
+#                         ),
+#                         # Identificacion
+#                         form_field(
+#                             "Identificacion",
+#                             "Identificacion",
+#                             "number",
+#                             "identificacion",
+#                             "fingerprint",
+#                             user.identificacion.to(str),
+#                         ),
                         
-                        # Email
-                        form_field(
-                            "Email",
-                            "user@reflex.dev",
-                            "email",
-                            "email",
-                            "mail",
-                            user.email,
-                        ),
-                        # Phone
-                        form_field(
-                            "Telefono",
-                            "Telefono del cliente",
-                            "tel",
-                            "phone",
-                            "phone",
-                            user.telefono.to(str),
-                        ),
-                        # Address
-                        form_field(
-                            "Direccion",
-                            "Direccion del cliente",
-                            "text",
-                            "address",
-                            "home",
-                            user.direccion,
-                        ),
-                        direction="column",
-                        spacing="3",
-                    ),
-                    rx.flex(
-                        rx.dialog.close(
-                            rx.button(
-                                "Cancel",
-                                variant="soft",
-                                color_scheme="gray",
-                            ),
-                        ),
-                        #rx.dialog.close(
-                            rx.button(
-                            "Actualizar Cliente",
-                            type="submit"
-                            ),
-                        #),
+#                         # Email
+#                         form_field(
+#                             "Email",
+#                             "user@reflex.dev",
+#                             "email",
+#                             "email",
+#                             "mail",
+#                             user.email,
+#                         ),
+#                         # Phone
+#                         form_field(
+#                             "Telefono",
+#                             "Telefono del cliente",
+#                             "tel",
+#                             "telefono",
+#                             "phone",
+#                             user.telefono.to(str),
+#                         ),
+#                         # Address
+#                         form_field(
+#                             "Direccion",
+#                             "Direccion del cliente",
+#                             "text",
+#                             "direccion",
+#                             "home",
+#                             user.direccion,
+#                         ),
+#                         direction="column",
+#                         spacing="3",
+#                     ),
+#                     rx.flex(
+#                         rx.dialog.close(
+#                             rx.button(
+#                                 "Cancel",
+#                                 variant="soft",
+#                                 color_scheme="gray",
+#                             ),
+#                         ),
+#                         rx.dialog.close(
+#                             rx.button(
+#                             "Actualizar Cliente",
+#                             type="submit"
+#                             ),
+#                         ),
                         
-                            #as_child=True,
-                        padding_top="2em",
-                        spacing="3",
-                        mt="4",
-                        justify="end",
-                        ),
-                        on_submit=ClienteState.update_customer_to_db,
-                        reset_on_submit=True,
-                    ),
-                width="100%",
-                direction="column",
-                spacing="4",
-                ),
-            max_width="450px",
-            padding="1.5em",
-            border=f"2px solid {rx.color('accent', 7)}",
-            border_radius="25px",
-            ),
+#                             #as_child=True,
+#                         padding_top="2em",
+#                         spacing="3",
+#                         mt="4",
+#                         justify="end",
+#                         ),
+#                         on_submit=ClienteState.update_customer_to_db,
+#                         reset_on_submit=True,
+#                     ),
+#                 width="100%",
+#                 direction="column",
+#                 spacing="4",
+#                 ),
+#             max_width="450px",
+#             padding="1.5em",
+#             border=f"2px solid {rx.color('accent', 7)}",
+#             border_radius="25px",
+#             ),
             
-        ),
+#         ),
 
 
 
@@ -291,6 +291,7 @@ def _header_cell(text: str, icon: str):
 def main_table():
     return rx.fragment(
         rx.flex(
+            rx.heading("Clientes", size="9", weight="bold"),
             add_customer_button(),
             rx.spacer(),
             rx.cond(
@@ -311,7 +312,7 @@ def main_table():
                 ),
             ),
             rx.select(
-                ["name", "identificacion", "email", "phone", "address"], #"date", "status"
+                ["nombre", "identificacion", "email", "telefono", "direccion"], #"date", "status"
                 placeholder="Sort By: Name",
                 size="3",
                 on_change=lambda sort_value: ClienteState.sort_values(sort_value),

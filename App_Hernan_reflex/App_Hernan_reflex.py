@@ -8,35 +8,8 @@ from App_Hernan_reflex.views.login import login_default_icons
 from App_Hernan_reflex.views.signup import signup_default_icons
 from App_Hernan_reflex.views.user_table import main_table
 from App_Hernan_reflex.views.dash_transaccion import transacciones_page
-
-class State(rx.State):
-    """The app state."""
-
-    ...
-
-
-def index() -> rx.Component:
-    # Welcome Page (Index)
-    return rx.container(
-        rx.color_mode.button(position="top-right"),
-        rx.vstack(
-            rx.heading("Welcome to Reflex!", size="9"),
-            rx.text(
-                "Get started by editing ",
-                rx.code(f"{config.app_name}/{config.app_name}.py"),
-                size="5",
-            ),
-            rx.link(
-                rx.button("Check out our docs!"),
-                href="https://reflex.dev/docs/getting-started/introduction/",
-                is_external=True,
-            ),
-            spacing="5",
-            justify="center",
-            min_height="85vh",
-        ),
-        rx.logo(),
-    )
+from App_Hernan_reflex.components.navbar import navbar_dropdown
+from App_Hernan_reflex.backend.login import AuthState
 
 def inicio() -> rx.Component:
     return rx.container(
@@ -49,30 +22,47 @@ def registro() -> rx.Component:
         )
     
 def tabla() -> rx.Component:
-    return rx.vstack(
-        rx.box(
-            main_table(),
-            width="100%",
+    return rx.fragment(
+        rx.cond(
+            AuthState.is_authenticated,
+            rx.vstack(
+                navbar_dropdown(),
+                rx.box(
+                    rx.spacer(height="2em"),
+                    main_table(),
+                    width="100%",
+                ),
+                width="100%",
+                spacing="6",
+                padding_x=["1.5em", "1.5em", "3em"],
+            ),
+            rx.text("No estás autenticado. Redirigiendo..."),
         ),
-        width="100%",
-        spacing="6",
-        padding_x=["1.5em", "1.5em", "3em"],
+        on_mount=AuthState.check_auth,
     )
 
 def transacciones_dashboard() -> rx.Component:
-    return rx.vstack(
-        rx.box(
-            transacciones_page(),
-            width="100%",
+    return rx.fragment(
+        rx.cond(
+            AuthState.is_authenticated,
+            rx.vstack(
+                navbar_dropdown(),
+                rx.box(
+                    rx.spacer(height="2em"),
+                    transacciones_page(),
+                    width="100%",
+                ),
+                width="100%",
+                spacing="6",
+                padding_x=["1.5em", "1.5em", "3em"],
+            ),
+            rx.text("No estás autenticado. Redirigiendo..."),
         ),
-        width="100%",
-        spacing="6",
-        padding_x=["1.5em", "1.5em", "3em"],
+        on_mount=AuthState.check_auth,  # Verifica autenticación al cargar la página
     )
     
-
+       
 app = rx.App()
-app.add_page(index, route="/index")
 app.add_page(transacciones_dashboard, route="/transacciones")
 app.add_page(inicio, route="/")
 app.add_page(registro, route="/registro")
