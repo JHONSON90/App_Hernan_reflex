@@ -291,10 +291,10 @@ def _header_cell(text: str, icon: str):
 
 def transacciones_page():
     return rx.fragment(
+                rx.heading("Transacciones", size="7", weight="bold", align="center"),
+                rx.spacer(height="0.5em"),
         rx.flex(
-            rx.heading("Transacciones", size="9", weight="bold"),
-            add_transaccion_button(),
-            rx.spacer(),
+                add_transaccion_button(),               
             rx.cond(
                 TransaccionState.sort_reverse,
                 rx.icon(
@@ -327,7 +327,7 @@ def transacciones_page():
                 variant="surface",
                 on_change=lambda value: TransaccionState.filter_values(value),
             ),
-            justify="end",
+            justify="start",
             align="center",
             spacing="3",
             wrap="wrap",

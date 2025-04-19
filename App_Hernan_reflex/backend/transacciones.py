@@ -61,17 +61,17 @@ class TransaccionState(rx.State):
     @rx.event
     def sort_values(self, sort_value: str):
         self.sort_value = sort_value
-        self.load_transacciones()
+        self.on_load_transacciones()
         
     @rx.event
     def toggle_sort(self):
         self.sort_reverse = not self.sort_reverse
-        self.load_transacciones()
+        self.on_load_transacciones()
         
     @rx.event
     def filter_values(self, search_value):
         self.search_value = search_value
-        self.load_transacciones()
+        self.on_load_transacciones()
         
     # @rx.event
     # def get_transa_unit(self, transaccion: Transaccion):

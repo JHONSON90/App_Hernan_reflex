@@ -290,10 +290,10 @@ def _header_cell(text: str, icon: str):
 
 def main_table():
     return rx.fragment(
+                rx.heading("Clientes", size="7", weight="bold", align="center"),
+                rx.spacer(height="0.5em"),
         rx.flex(
-            rx.heading("Clientes", size="9", weight="bold"),
             add_customer_button(),
-            rx.spacer(),
             rx.cond(
                 ClienteState.sort_reverse,
                 rx.icon(
@@ -326,9 +326,9 @@ def main_table():
                 variant="surface",
                 on_change=lambda value: ClienteState.filter_values(value),
             ),
-            justify="end",
+            justify="start",
             align="center",
-            spacing="3",
+            spacing="4",
             wrap="wrap",
             width="100%",
             padding_bottom="1em",
